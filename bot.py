@@ -1,68 +1,50 @@
+# TODO: ZARUR ISHLAR CHIQAN SABAB BOT VAQTIDA QILIN MAD. 02/11/2025. 17:00 DA BOT TOLIQ TUGAYDI 
 import requests
+import time
 
 from config import TOKEN
 
+# =============Telegram API======================
 TG_BOT_URL = f'https://api.telegram.org/bot{TOKEN}'
+GetUpdates = f'https://api.telegram.org/bot{TOKEN}/getUpdates'
+SendMessange = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
+
+
 
 
 def get_updates(offset: int | None, limit: int = 100):
-    url = f'{TG_BOT_URL}/getUpdates'
-    params = {
-        'offset': offset,
-        'limit': limit
-    }
-    response = requests.get(url, params=params)
+    return requests.get(GetUpdates, params={'offset': offset, 'limit': limit}).json()['result']
 
-    if response.status_code == 200:
-        return response.json()['result']
-    
-def send_message(chat_id: int | str, text: str):
-    url = f'{TG_BOT_URL}/sendMessage'
-    params = {
-        'chat_id': chat_id,
-        'text': text
-    }
-    requests.get(url, params=params)
-    
-def send_photo(chat_id: int | str, photo: str):
-    url = f'{TG_BOT_URL}/sendPhoto'
-    params = {
-        'chat_id': chat_id,
-        'photo': photo
-    }
-    requests.get(url, params=params)
-    
-def send_location(chat_id: int | str, latitude: float, longitude: float):
-    url = f'{TG_BOT_URL}/sendLocation'
-    params = {
-        'chat_id': chat_id,
-        'latitude': latitude,
-        'longitude': longitude,
-    }
-    requests.get(url, params=params)
 
-def main():
-    offset = None
-    limit = 100
+def send_messange(chat_id: int | str, text: str):
+    requests.get(SendMessange, params={'chat_id': chat_id, 'text': text})
 
-    while True:
-        for update in get_updates(offset, limit):
-            chat_id = update['message']['chat']['id']
+offset = None
 
-            if 'text' in update['message']:
-                text = update['message']['text']
-                if text == '/start':
-                    # add user to database
-                    text = 'salom, botga xush kelibsiz!'
-
-                send_message(chat_id, text)
-            elif 'photo' in update['message']:
-                photo = update['message']['photo'][-1]
-                send_photo(chat_id, photo['file_id'])
-            elif 'location' in update['message']:
-                location = update['message']['location']
-                send_location(chat_id, location['latitude'], location['longitude'])
-
-            offset = update['update_id'] + 1
-
-main()
+while True:
+    for update in get_updates(offset):    
+        get_chat_id = update['message']['chat']['id']
+        update_id = update['update_id']
+        first_name = update['message']['from']['first_name']
+        username = update['message']['from']['username']
+        
+        if 'text' in update['message']:
+            user_text = update['message']['text']
+            text = user_text
+            if user_text == '/start':
+                text = 'salom meni botimga xosh kelib siz'
+            send_messange(get_chat_id, text)
+        elif 'photo' in update['message']:
+            print(update)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        offset = update_id + 1
