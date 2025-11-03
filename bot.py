@@ -1,141 +1,146 @@
+# cook your dish here
 import os
-import json
-import time
 import requests
-from dotenv import load_dotenv
+import time
+import json
 
-# .env fayldan o'zgaruvchilarni yuklash
-load_dotenv()
+from config import TOKEN, DB_NAME
 
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-DB_NAME = "users.json"
-
-# Telegram API URL’lar
-BASE_URL = f"https://api.telegram.org/bot{TOKEN}"
-GET_UPDATES = f"{BASE_URL}/getUpdates"
-SEND_MESSAGE = f"{BASE_URL}/sendMessage"
-SEND_PHOTO = f"{BASE_URL}/sendPhoto"
-SEND_STICKER = f"{BASE_URL}/sendSticker"
-SEND_ANIMATION = f"{BASE_URL}/sendAnimation"
-SEND_VOICE = f"{BASE_URL}/sendVoice"
-SEND_VIDEO = f"{BASE_URL}/sendVideo"
-SEND_LOCATION = f"{BASE_URL}/sendLocation"
-SEND_DOCUMENT = f"{BASE_URL}/sendDocument"
+# =============Telegram API======================
+TG_BOT_URL = f'https://api.telegram.org/bot{TOKEN}'
+GetUpdates = f'https://api.telegram.org/bot{TOKEN}/getUpdates'
+SendMessange = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
+SendPhoto = f'https://api.telegram.org/bot{TOKEN}/sendPhoto'
+SendSticker = f'https://api.telegram.org/bot{TOKEN}/sendSticker'
+SendAnimation = f'https://api.telegram.org/bot{TOKEN}/sendAnimation'
+SendVoice = f'https://api.telegram.org/bot{TOKEN}/sendVoice'
+SendVideo = f'https://api.telegram.org/bot{TOKEN}/sendVideo'
+SendLocation = f'https://api.telegram.org/bot{TOKEN}/sendLocation'
+SendDocument = f'https://api.telegram.org/bot{TOKEN}/sendDocument'
 
 
-# ==== Ma'lumotlar bazasi (JSON fayl) ====
-def save_db(chat_id, first_name, username):
+
+def get_updates(offset: int | None, limit: int = 100):
+    return requests.get(GetUpdates, params={'offset': offset, 'limit': limit}).json()['result']
+
+
+def send_messange(chat_id: int | str, text: str):
+    requests.get(SendMessange, params={'chat_id': chat_id, 'text': text})
+    
+
+def send_photo(chat_id: str | int, file_id: str):
+    requests.get(SendPhoto, params={'chat_id': chat_id, 'photo': file_id})
+
+
+def send_sticker(chat_id: str | int, file_id: str):
+    requests.get(SendSticker, params={'chat_id': chat_id, 'sticker': file_id})
+
+
+def send_animation(chat_id: str | int, file_id: str):
+    requests.get(SendAnimation, params={'chat_id': chat_id, 'animation': file_id})
+
+
+def send_voice(chat_id: str | int, file_id: str):
+    requests.get(SendVoice, params={'chat_id': chat_id, 'voice': file_id})
+
+
+def send_video(chat_id: str | int, file_id: str):
+    requests.get(SendVideo, params={'chat_id': chat_id, 'video': file_id})
+
+
+def send_location(chat_id: str | int, latitude: float, longitude: float):
+    requests.get(SendLocation, params={'chat_id': chat_id, 'latitude': latitude, 'longitude': longitude})
+
+
+def send_document(chat_id: str | int, file_id: str):
+    requests.get(SendDocument, params={'chat_id': chat_id, 'document': file_id})
+
+
+def save_db(chat_id: str|int, first_name: str, username: str):
     user = {
         'chat_id': chat_id,
         'first_name': first_name,
         'username': username
     }
+    
     try:
         with open(DB_NAME) as read_f:
             db_json = json.load(read_f)
-    except (FileNotFoundError, json.decoder.JSONDecodeError):
-        db_json = []
-
-    if not any(u['chat_id'] == chat_id for u in db_json):
-        db_json.append(user)
+            
         with open(DB_NAME, "w") as add_f:
+            db_json.append(user)
             json.dump(db_json, add_f, indent=4)
+    except FileNotFoundError:
+        with open(DB_NAME, "w") as add_f:
+            l = [user]
+            json.dump(l, add_f, indent=4)
+    except json.decoder.JSONDecodeError:
+        with open(DB_NAME, "w") as add_f:
+            l = [user]
+            json.dump(l, add_f, indent=4)
+            
+            
+def check_user(chat_id: str|int, first_name: str, username: str):
+    found = False
+    try:
+        
+        with open(DB_NAME) as read_f:
+            db_json = json.load(read_f)
+            
+        for user in db_json:
+            if user['chat_id'] == chat_id:
+                found= True
+                break
+        
+        if not found:
+            save_db(chat_id, first_name, username)
+            
+    except FileNotFoundError:
+        save_db(chat_id, first_name, username)
+    except json.decoder.JSONDecodeError:
+        save_db(chat_id, first_name, username)
 
 
-def check_user(chat_id, first_name, username):
-    save_db(chat_id, first_name, username)
+offset = None
 
-
-# ==== Xabar yuborish funksiyalari ====
-def send_message(chat_id, text):
-    requests.get(SEND_MESSAGE, params={'chat_id': chat_id, 'text': text})
-
-
-def send_photo(chat_id, file_id):
-    requests.get(SEND_PHOTO, params={'chat_id': chat_id, 'photo': file_id})
-
-
-def send_sticker(chat_id, file_id):
-    requests.get(SEND_STICKER, params={'chat_id': chat_id, 'sticker': file_id})
-
-
-def send_animation(chat_id, file_id):
-    requests.get(SEND_ANIMATION, params={'chat_id': chat_id, 'animation': file_id})
-
-
-def send_voice(chat_id, file_id):
-    requests.get(SEND_VOICE, params={'chat_id': chat_id, 'voice': file_id})
-
-
-def send_video(chat_id, file_id):
-    requests.get(SEND_VIDEO, params={'chat_id': chat_id, 'video': file_id})
-
-
-def send_location(chat_id, lat, lon):
-    requests.get(SEND_LOCATION, params={'chat_id': chat_id, 'latitude': lat, 'longitude': lon})
-
-
-def send_document(chat_id, file_id):
-    requests.get(SEND_DOCUMENT, params={'chat_id': chat_id, 'document': file_id})
-
-
-# ==== Polling orqali yangilanishlarni olish ====
-def get_updates(offset=None, limit=100):
-    response = requests.get(GET_UPDATES, params={'offset': offset, 'limit': limit})
-    result = response.json()
-    return result.get('result', [])
-
-
-# ==== Asosiy loop ====
-def main():
-    offset = None
-    print("Bot ishga tushdi ✅")
-
-    while True:
-        try:
-            updates = get_updates(offset)
-            for update in updates:
-                update_id = update['update_id']
-                offset = update_id + 1
-
-                if 'message' not in update:
-                    continue
-
-                message = update['message']
-                chat_id = message['chat']['id']
-                first_name = message['from'].get('first_name', '')
-                username = message['from'].get('username', '')
-
-                check_user(chat_id, first_name, username)
-
-                if 'text' in message:
-                    text = message['text']
-                    if text == '/start':
-                        send_message(chat_id, f"Salom {first_name}! Bot ishga tushdi ✅")
-                    else:
-                        send_message(chat_id, f"Siz yubordingiz: {text}")
-
-                elif 'photo' in message:
-                    send_photo(chat_id, message['photo'][-1]['file_id'])
-                elif 'sticker' in message:
-                    send_sticker(chat_id, message['sticker']['file_id'])
-                elif 'animation' in message:
-                    send_animation(chat_id, message['animation']['file_id'])
-                elif 'voice' in message:
-                    send_voice(chat_id, message['voice']['file_id'])
-                elif 'video' in message:
-                    send_video(chat_id, message['video']['file_id'])
-                elif 'location' in message:
-                    send_location(chat_id, message['location']['latitude'], message['location']['longitude'])
-                elif 'document' in message:
-                    send_document(chat_id, message['document']['file_id'])
-
-            time.sleep(1)
-
-        except Exception as e:
-            print(f"Xatolik: {e}")
-            time.sleep(3)
-
-
-if __name__ == "__main__":
-    main()
+while True:
+    for update in get_updates(offset):    
+        update_id = update['update_id']
+        
+        if 'message' in update:
+            get_chat_id = update['message']['chat']['id']
+            first_name = update['message']['from']['first_name']
+            username = update['message']['from']['username']
+            
+            if 'text' in update['message']:
+                user_text = update['message']['text']
+                text = user_text
+                if user_text == '/start':
+                    text = 'salom meni botimga xosh kelib siz'
+                    check_user(get_chat_id, first_name, username)
+                
+                send_messange(get_chat_id, text)
+            elif 'photo' in update['message']:
+                get_file_id = update['message']['photo'][-1]['file_id']
+                send_photo(get_chat_id, get_file_id)
+            elif 'sticker' in update['message']:
+                get_sticker_id = update['message']['sticker']['file_id']
+                send_sticker(get_chat_id, get_sticker_id)
+            elif 'animation' in update['message']:
+                get_animation_id = update['message']['animation']['file_id']
+                send_animation(get_chat_id, get_animation_id)
+            elif 'voice' in update['message']:
+                get_voice_id = update['message']['voice']['file_id']
+                send_voice(get_chat_id, get_voice_id)
+            elif 'video' in update['message']:
+                get_video_id = update['message']['video']['file_id']
+                send_video(get_chat_id, get_video_id)
+            elif 'location' in update['message']:
+                get_latitude = update['message']['location']['latitude']
+                get_longitude = update['message']['location']['longitude']
+                send_location(get_chat_id, get_latitude, get_longitude)
+            elif 'document' in update['message']:
+                get_document_id = update['message']['document']['file_id']
+                send_document(get_chat_id, get_document_id)
+        
+        offset = update_id + 1
