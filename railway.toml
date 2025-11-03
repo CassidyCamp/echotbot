@@ -1,9 +1,5 @@
 [build]
-builder = "nixpacks"
-buildCommand = "pip install -r requirements.txt"
+builder = "NIXPACKS"
 
 [start]
 command = "python bot.py"
-
-[env]
-PORT = "8080"
