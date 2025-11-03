@@ -5,6 +5,32 @@ import json
 
 from config import TOKEN, DB_NAME
 from dotenv import load_dotenv
+from flask import Flask, request
+import requests
+import os
+
+app = Flask(__name__)
+
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+URL = f"https://api.telegram.org/bot{TOKEN}"
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    update = request.get_json()
+    chat_id = update["message"]["chat"]["id"]
+    text = update["message"].get("text", "")
+
+    if text == "/start":
+        requests.get(f"{URL}/sendMessage", params={"chat_id": chat_id, "text": "Salom, bot ishga tushdi!"})
+    return {"ok": True}
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
+
 
 load_dotenv()
 
