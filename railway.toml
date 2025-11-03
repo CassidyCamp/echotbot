@@ -1,5 +1,5 @@
 [build]
-builder = "Python"
+nixpacksPlan = true
 
 [env]
 PORT = "8080"
