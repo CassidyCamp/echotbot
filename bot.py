@@ -1,8 +1,18 @@
+import os
 import requests
 import time
 import json
 
 from config import TOKEN, DB_NAME
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Endi env o‘zgaruvchilarni olish
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+PORT = int(os.getenv("PORT", 8080))
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
 
 # =============Telegram API======================
 TG_BOT_URL = f'https://api.telegram.org/bot{TOKEN}'
