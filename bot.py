@@ -1,7 +1,8 @@
 import requests
 import time
+import json
 
-from config import TOKEN, FILE_NAME
+from config import TOKEN, DB_NAME
 
 # =============Telegram API======================
 TG_BOT_URL = f'https://api.telegram.org/bot{TOKEN}'
@@ -53,10 +54,51 @@ def send_document(chat_id: str | int, file_id: str):
     requests.get(SendDocument, params={'chat_id': chat_id, 'document': file_id})
 
 
-def save_db(user: dict):
-    with open(FILE_NAME, "w") as f:
-        pass
+def save_db(chat_id: str|int, first_name: str, username: str):
+    user = {
+        'chat_id': chat_id,
+        'first_name': first_name,
+        'username': username
+    }
     
+    try:
+        with open(DB_NAME) as read_f:
+            db_json = json.load(read_f)
+            
+        with open(DB_NAME, "w") as add_f:
+            db_json.append(user)
+            json.dump(db_json, add_f, indent=4)
+    except FileNotFoundError:
+        with open(DB_NAME, "w") as add_f:
+            l = [user]
+            json.dump(l, add_f, indent=4)
+    except json.decoder.JSONDecodeError:
+        with open(DB_NAME, "w") as add_f:
+            l = [user]
+            json.dump(l, add_f, indent=4)
+            
+            
+def check_user(chat_id: str|int, first_name: str, username: str):
+    found = False
+    try:
+        
+        with open(DB_NAME) as read_f:
+            db_json = json.load(read_f)
+            
+        for user in db_json:
+            if user['chat_id'] == chat_id:
+                found= True
+                break
+        
+        if not found:
+            save_db(chat_id, first_name, username)
+            
+    except FileNotFoundError:
+        save_db(chat_id, first_name, username)
+    except json.decoder.JSONDecodeError:
+        save_db(chat_id, first_name, username)
+
+
 offset = None
 
 while True:
@@ -73,11 +115,7 @@ while True:
                 text = user_text
                 if user_text == '/start':
                     text = 'salom meni botimga xosh kelib siz'
-                    try:
-                        with open(FILE_NAME) as f:
-                            pass
-                    except:
-                        pass
+                    check_user(get_chat_id, first_name, username)
                 
                 send_messange(get_chat_id, text)
             elif 'photo' in update['message']:
