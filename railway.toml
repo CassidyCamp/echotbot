@@ -1,0 +1,8 @@
+[build]
+builder = "Python"
+
+[env]
+PORT = "8080"
+
+[run]
+command = "python bot.py"

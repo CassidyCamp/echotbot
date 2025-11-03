@@ -142,3 +142,4 @@ while True:
                 send_document(get_chat_id, get_document_id)
         
         offset = update_id + 1
+        time.sleep(1)
