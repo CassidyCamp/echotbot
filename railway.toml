@@ -1,1 +1,5 @@
-worker: python bot.py
+[build]
+builder = "NIXPACKS"
+
+[start]
+command = "python bot.py"
