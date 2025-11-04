@@ -1,10 +1,4 @@
-__pycache__/
-*.pyc
-users.json
-.env
-
-# Keep config.sample.py in repo but avoid committing real config with token
-config.py# Created by https://www.toptal.com/developers/gitignore/api/python,venv,visualstudiocode
+# Created by https://www.toptal.com/developers/gitignore/api/python,venv,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,venv,visualstudiocode
 
 ### Python ###
