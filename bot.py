@@ -4,7 +4,12 @@ import requests
 import time
 import json
 
-from config import TOKEN, DB_NAME
+# Get configuration from environment variables
+TOKEN = os.environ.get('TOKEN')
+if not TOKEN:
+    raise RuntimeError("Please set the TOKEN environment variable with your Telegram bot token")
+
+DB_NAME = os.environ.get('DB_NAME', 'users.json')
 
 # =============Telegram API======================
 TG_BOT_URL = f'https://api.telegram.org/bot{TOKEN}'
